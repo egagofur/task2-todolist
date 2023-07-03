@@ -34,7 +34,7 @@ export type TModalTodo = yup.InferType<typeof schema>;
 
 function Todo() {
   const [showModal, setShowModal] = useState(false);
-  const { data, isLoading, refetch } = useFetchTodo();
+  const { data, isLoading, refetch: refetchTodo } = useFetchTodo();
 
   const queryClient = useQueryClient();
 
@@ -62,11 +62,11 @@ function Todo() {
     setShowModal((showModal) => !showModal);
   }, []);
 
-  const { mutate: createTodo } = useCreateTodo({
+  const { mutate: createTodo, isLoading: createTodoLoading } = useCreateTodo({
     onSuccess: () => {
       toast.success("Success Create Task");
       reset();
-      refetch();
+      refetchTodo();
       handleModal();
     },
   });
@@ -74,7 +74,7 @@ function Todo() {
   const { mutate: deleteTodo } = useDeleteTodo({
     onSuccess: () => {
       toast.error("Success Delete Task");
-      refetch();
+      refetchTodo();
     },
   });
 
@@ -85,7 +85,7 @@ function Todo() {
     },
   });
 
-  const { mutate: updateTodo } = useUpdateTodo({
+  const { mutate: updateTodo, isLoading: updateTodoLoading } = useUpdateTodo({
     onSuccess: () => {
       toast.success("Success Update Task");
       reset({
@@ -114,6 +114,14 @@ function Todo() {
     },
   });
 
+  const onValid = useCallback(
+    (data: ITask) => {
+      if (data.id) return updateTodo(data);
+      createTodo(data as ITaskForm);
+    },
+    [createTodo, updateTodo]
+  );
+
   const handleChecked = useCallback(
     (task: ITask) => {
       doneTask(task);
@@ -126,17 +134,6 @@ function Todo() {
       deleteTodo(task);
     },
     [deleteTodo]
-  );
-
-  const onValid = useCallback(
-    (data: ITask) => {
-      if (data.id) {
-        updateTodo(data);
-        return;
-      }
-      createTodo(data as ITaskForm);
-    },
-    [createTodo, updateTodo]
   );
 
   const handleUpdate = useCallback(
@@ -219,7 +216,10 @@ function Todo() {
           data={data}
         />
       ) : (
-        <ButtonCreate disabled={isSubmitting} handleModal={handleModal} />
+        <ButtonCreate
+          disabled={isSubmitting || createTodoLoading || updateTodoLoading}
+          handleModal={handleModal}
+        />
       )}
     </main>
   );

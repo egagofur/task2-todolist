@@ -20,7 +20,7 @@ const CardNotComplate: React.FC<CardProps> = ({
             <h4>{moment(task.date).format("DD MMMM YYYY")}</h4>
             <h4 className="text-sm">{task.time}</h4>
             {task.createdAt !== task.updatedAt ? (
-              <h4 className="text-sm italic">
+              <h4 className="text-sm italic font-medium text-gray-400 font-jakartaPlus">
                 Last updated {moment(task.updatedAt).calendar()}
               </h4>
             ) : null}
